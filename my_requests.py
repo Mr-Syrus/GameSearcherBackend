@@ -45,7 +45,7 @@ def get(
                 )
                 if response.status_code != 429:
                     break
-                time.sleep(10)
+                time.sleep(30)
         except requests.exceptions.ProxyError as e:
             print(f"ProxyError: {str(e)}")
         except requests.exceptions.ConnectionError as e:
