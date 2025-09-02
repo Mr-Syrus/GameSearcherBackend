@@ -20,6 +20,7 @@ services:
     restart: unless-stopped
     networks:
       - internal
+      - minio_network
     depends_on: *common-depends
     environment:
       <<: *common-env
@@ -37,6 +38,7 @@ services:
     restart: unless-stopped
     networks:
       - internal
+      - minio_network
 
   celery_beat:
     build:
@@ -52,6 +54,7 @@ services:
     restart: unless-stopped
     networks:
       - internal
+      - minio_network
 
   celery_flower:
     build:
@@ -70,6 +73,7 @@ services:
     restart: unless-stopped
     networks:
       - internal
+      - minio_network
 
   redis_cache:
     image: redis:latest
@@ -85,7 +89,10 @@ services:
       - "6379:6379"
     networks:
       - internal
+      - minio_network
 
 networks:
   internal:
     driver: bridge
+  minio_network:
+    external: true
