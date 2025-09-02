@@ -27,8 +27,9 @@ REDIS_LOCK: redis.Redis
 REDIS_CACHE_URL = os.getenv('REDIS_CACHE_URL', "redis://192.168.0.192:6379/2")
 
 MINIO:Minio
-ACCESS_KEY = os.getenv('ACCESS_KEY')
-SECRET_KEY = os.getenv('SECRET_KEY')
-BUCKET_NAME = "game_searcher"
+MINIO_URL = os.getenv('MINIO_URL')
+MINIO_ACCESS_KEY = os.getenv('ACCESS_KEY')
+MINIO_SECRET_KEY = os.getenv('SECRET_KEY')
+MINIO_BUCKET_NAME = "game-searcher"
 
 STEAM_API = os.getenv('STEAM_API')

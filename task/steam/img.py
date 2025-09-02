@@ -27,7 +27,7 @@ def img(self: Task, url:str):
 
         # 3. загрузить в MinIO
         config.MINIO.put_object(
-            config.BUCKET_NAME,
+            config.MINIO_BUCKET_NAME,
             object_name,
             data,
             length=len(r.content),

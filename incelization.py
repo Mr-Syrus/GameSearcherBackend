@@ -39,13 +39,13 @@ else:
     config.REDIS_LOCK = fakeredis.FakeStrictRedis()
 
 config.MINIO = Minio(
-    "192.168.0.192",          # адрес MinIO
-    access_key=config.ACCESS_KEY,   # логин
-    secret_key=config.SECRET_KEY,   # пароль
-    secure=True               # True если https
+    config.MINIO_URL,
+    access_key=config.MINIO_ACCESS_KEY,
+    secret_key=config.MINIO_SECRET_KEY,
+    secure=False
 )
-if not config.MINIO.bucket_exists(config.BUCKET_NAME):
-    config.MINIO.make_bucket(config.BUCKET_NAME)
+if not config.MINIO.bucket_exists(config.MINIO_BUCKET_NAME):
+    config.MINIO.make_bucket(config.MINIO_BUCKET_NAME)
 
 def init():
 
