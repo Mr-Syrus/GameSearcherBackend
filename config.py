@@ -20,11 +20,11 @@ DATABASE_URL: str = os.getenv('DATABASE_URL')
 
 # celery
 CELERY_APP: Celery
-CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', "redis://127.0.0.1:6379/1")
+CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', "redis://192.168.0.192:6379/1")
 
 # redis_cache
 REDIS_LOCK: redis.Redis
-REDIS_CACHE_URL = os.getenv('REDIS_CACHE_URL', "redis://127.0.0.1:6379/2")
+REDIS_CACHE_URL = os.getenv('REDIS_CACHE_URL', "redis://192.168.0.192:6379/2")
 
 MINIO:Minio
 ACCESS_KEY = os.getenv('ACCESS_KEY')
