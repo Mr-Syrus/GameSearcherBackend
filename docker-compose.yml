@@ -29,7 +29,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: celery -A celery_start worker --loglevel=info --concurrency=10
+    command: celery -A celery_start worker --loglevel=info --concurrency=2
     volumes:
       - .:/app
     depends_on: *common-depends
