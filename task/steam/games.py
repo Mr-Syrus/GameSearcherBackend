@@ -136,8 +136,8 @@ def games(self: Task, id: int):
                 mac_requirements=app_data["mac_requirements"],
                 linux_requirements=app_data["linux_requirements"],
 
-                developers=app_data["developers"],
-                publishers=app_data["publishers"],
+                developers=app_data.get("developers"),
+                publishers=app_data.get("publishers"),
 
                 platforms_windows=app_data["platforms"]["windows"],
                 platforms_mac=app_data["platforms"]["mac"],
