@@ -2,7 +2,7 @@ import requests
 from celery import Task
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
-
+from .games import games as games_task
 import config
 import my_requests
 from db.steam.games import Games
@@ -35,6 +35,8 @@ def user(self: Task, steam_id: int):
                 playtime_hours=playtime_hours,
                 rtime_last_played=rtime_last_played,
             ))
+            if not db.query(Games).get(appid):
+                games_task.apply_async((appid,))
         db.commit()
         url = f"https://api.steampowered.com/ISteamUser/GetFriendList/v1/"
         r = my_requests.get(url, params={
