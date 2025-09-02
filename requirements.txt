@@ -55,3 +55,4 @@ kombu~=5.5.1
 
 
 fakeredis==2.31.0
+minio==7.2.16
