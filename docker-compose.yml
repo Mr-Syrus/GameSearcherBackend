@@ -53,6 +53,24 @@ services:
     networks:
       - internal
 
+  celery_flower:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: celery_flower
+    command: celery -A celery_start flower
+    volumes:
+      - .:/app
+      - ./beat-schedule:/app/beat-schedule
+    depends_on: *common-depends
+    environment:
+      <<: *common-env
+    ports:
+      - "5555:5555"
+    restart: unless-stopped
+    networks:
+      - internal
+
   redis_cache:
     image: redis:latest
     container_name: redis_cache
