@@ -111,7 +111,10 @@ def games(self: Task, id: int):
 
                 img.img.apply_async((screenshot["path_thumbnail"],))
                 img.img.apply_async((screenshot["path_full"],))
-
+            try:
+                release_date = datetime.strptime(app_data["release_date"]["date"], "%d %b, %Y").date(),
+            except:
+                release_date = None
             data = Games(
                 id=id,
 
@@ -143,7 +146,7 @@ def games(self: Task, id: int):
                 platforms_mac=app_data["platforms"]["mac"],
                 platforms_linux=app_data["platforms"]["linux"],
 
-                release_date=datetime.strptime(app_data["release_date"]["date"], "%d %b, %Y").date(),
+                release_date=release_date,
                 coming_soon=bool(app_data["release_date"]["coming_soon"]),
 
                 background=app_data.get("background"),

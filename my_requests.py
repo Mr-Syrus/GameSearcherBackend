@@ -35,13 +35,17 @@ def get(
                 time.sleep(wait)
 
         try:
-            response = requests.get(
-                url=url,
-                params=params,
-                headers=headers,
-                stream=stream,
-                timeout=timeout
-            )
+            while True:
+                response = requests.get(
+                    url=url,
+                    params=params,
+                    headers=headers,
+                    stream=stream,
+                    timeout=timeout
+                )
+                if response.status_code != 429:
+                    break
+                time.sleep(10)
         except requests.exceptions.ProxyError as e:
             print(f"ProxyError: {str(e)}")
         except requests.exceptions.ConnectionError as e:
