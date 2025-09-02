@@ -127,7 +127,7 @@ def games(self: Task, id: int):
                 about_the_game=app_data["about_the_game"],
                 short_description=app_data["short_description"],
 
-                supported_languages=app_data["supported_languages"].split(", "),
+                supported_languages=app_data.get("supported_languages","").split(", "),
 
                 header_image=app_data.get("header_image"),
                 capsule_image=app_data.get("capsule_image"),
