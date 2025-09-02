@@ -13,5 +13,4 @@ app = config.APP
 
 logging.basicConfig(level=logging.INFO)
 # scheduler_games.apply_async()
-games([20,150])
-# game(1290160)
+games([1086160])

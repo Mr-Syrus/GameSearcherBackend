@@ -25,9 +25,10 @@ def scheduler_games(self: Task):
     url = "https://api.steampowered.com/ISteamApps/GetAppList/v2/"
     response = my_requests.get(url)
     data_list = response.json()
-    appids = [app["appid"] for app in data_list["applist"]["apps"]]
-    for ids in split_list(appids, 50):
-        games.apply_async((ids,))
+    for app in data_list["applist"]["apps"]:
+        if "dlc" in app["name"].lower():
+            continue
+        games.apply_async((app["appid"],))
 
 
 @config.CELERY_APP.task(bind=True)
@@ -40,8 +41,7 @@ def games(self: Task, ids: List[int]):
 
         url = "https://store.steampowered.com/api/appdetails"
         response = my_requests.get(url, params={
-            "appids": ",".join([str(i) for i in ids]),
-            "filters": "price_overview"
+            "appids": ids[0],
         })
         data_steam: dict = response.json()
         for id, app in data_steam.items():
