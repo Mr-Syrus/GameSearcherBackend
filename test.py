@@ -14,4 +14,4 @@ app = config.APP
 logging.basicConfig(level=logging.INFO)
 # games.apply_async()
 game(1290160)
-game(1290160)
+# game(1290160)
