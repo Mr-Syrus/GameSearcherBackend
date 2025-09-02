@@ -12,5 +12,6 @@ incelization.init()
 app = config.APP
 
 logging.basicConfig(level=logging.INFO)
+scheduler_games()
 # scheduler_games.apply_async()
-games([1086160])
+# games(1086160)

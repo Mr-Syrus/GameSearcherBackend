@@ -27,12 +27,14 @@ def scheduler_games(self: Task):
     data_list = response.json()
     for app in data_list["applist"]["apps"]:
         if "dlc" in app["name"].lower():
+            print("scip:",app["appid"], app["name"])
             continue
+        print(app["appid"], app["name"])
         games.apply_async((app["appid"],))
 
 
 @config.CELERY_APP.task(bind=True)
-def games(self: Task, ids: List[int]):
+def games(self: Task, id: int):
     with config.DB.get_db_session() as db:
         db: Session
 
@@ -41,7 +43,7 @@ def games(self: Task, ids: List[int]):
 
         url = "https://store.steampowered.com/api/appdetails"
         response = my_requests.get(url, params={
-            "appids": ids[0],
+            "appids": id,
         })
         data_steam: dict = response.json()
         for id, app in data_steam.items():
