@@ -4,7 +4,7 @@ import uvicorn
 
 import config
 import incelization
-from task.steam.games import game, games
+from task.steam.games import games, scheduler_games
 
 # Initialization
 incelization.init()
@@ -12,6 +12,6 @@ incelization.init()
 app = config.APP
 
 logging.basicConfig(level=logging.INFO)
-# games.apply_async()
-game(1290160)
+# scheduler_games.apply_async()
+games([20,150])
 # game(1290160)

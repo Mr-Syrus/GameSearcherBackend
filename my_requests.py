@@ -17,7 +17,7 @@ def get(
         headers=None,
         max_retries=10,
         retry_delay=60,
-        min_interval=1,  # минимальный интервал между запросами (сек)
+        min_interval=3,  # минимальный интервал между запросами (сек)
         stream=False,
         timeout=60
 ):

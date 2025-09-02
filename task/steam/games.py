@@ -1,10 +1,11 @@
 from datetime import datetime
+from typing import List
 
 import requests
 from celery import Task
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
-
+import json
 import config
 import my_requests
 from db.steam.categories import Categories
@@ -20,16 +21,17 @@ from . import img
 
 
 @config.CELERY_APP.task(bind=True)
-def games(self: Task):
+def scheduler_games(self: Task):
     url = "https://api.steampowered.com/ISteamApps/GetAppList/v2/"
     response = my_requests.get(url)
     data_list = response.json()
-    for app in data_list["applist"]["apps"]:
-        game.apply_async((app["appid"],))
+    appids = [app["appid"] for app in data_list["applist"]["apps"]]
+    for ids in split_list(appids, 50):
+        games.apply_async((ids,))
 
 
 @config.CELERY_APP.task(bind=True)
-def game(self: Task, id):
+def games(self: Task, ids: List[int]):
     with config.DB.get_db_session() as db:
         db: Session
 
@@ -37,20 +39,29 @@ def game(self: Task, id):
         genres = {v.id: v for v in db.query(Genres).all()}
 
         url = "https://store.steampowered.com/api/appdetails"
-        response = my_requests.get(url, params={"appids": id})
+        response = my_requests.get(url, params={
+            "appids": ",".join([str(i) for i in ids]),
+            "filters": "price_overview"
+        })
         data_steam: dict = response.json()
         for id, app in data_steam.items():
             if not app["success"]:
                 continue
+            if len(app["data"]) < 5:
+                continue
             app_data = app["data"]
-            
-            img.img.apply_async((app_data["header_image"],))
-            img.img.apply_async((app_data["capsule_image"],))
-            img.img.apply_async((app_data["capsule_imagev5"],))
-            img.img.apply_async((app_data["background"],))
-            img.img.apply_async((app_data["background_raw"],))
 
-            for package_id, package_group in zip(app_data["packages"], app_data["package_groups"]):
+            for i in [
+                "header_image",
+                "capsule_image",
+                "capsule_imagev5",
+                "background",
+                "background_raw"
+            ]:
+                if i in app_data:
+                    img.img.apply_async((app_data[i],))
+
+            for package_id, package_group in zip(app_data.get("packages", []), app_data.get("package_groups", [])):
                 db.merge(Package(
                     id=package_id,
                     name=package_group["name"],
@@ -65,7 +76,8 @@ def game(self: Task, id):
                     id_games=id,
                     id_package=package_id
                 ))
-            for categorie in app_data["categories"]:
+
+            for categorie in app_data.get("categories", []):
                 if categorie["id"] not in categories:
                     db.merge(Categories(
                         id=categorie["id"],
@@ -76,7 +88,7 @@ def game(self: Task, id):
                     id_categories=categorie["id"]
                 ))
 
-            for genre in app_data["genres"]:
+            for genre in app_data.get("genres", []):
                 if genre["id"] not in genres:
                     db.merge(Genres(
                         id=genre["id"],
@@ -87,7 +99,7 @@ def game(self: Task, id):
                     id_genres=genre["id"]
                 ))
 
-            for screenshot in app_data["screenshots"]:
+            for screenshot in app_data.get("screenshots", []):
                 db.merge(Screenshots(
                     id_games=id,
                     id=screenshot["id"],
@@ -101,7 +113,7 @@ def game(self: Task, id):
             data = Games(
                 id=id,
 
-                type=app_data["type"],
+                type=app_data.get("type"),
                 name=app_data["name"],
                 required_age=app_data["required_age"],
                 is_free=app_data["is_free"],
@@ -112,9 +124,9 @@ def game(self: Task, id):
 
                 supported_languages=app_data["supported_languages"].split(", "),
 
-                header_image=app_data["header_image"],
-                capsule_image=app_data["capsule_image"],
-                capsule_imagev5=app_data["capsule_imagev5"],
+                header_image=app_data.get("header_image"),
+                capsule_image=app_data.get("capsule_image"),
+                capsule_imagev5=app_data.get("capsule_imagev5"),
 
                 website=app_data["website"],
 
@@ -129,11 +141,11 @@ def game(self: Task, id):
                 platforms_mac=app_data["platforms"]["mac"],
                 platforms_linux=app_data["platforms"]["linux"],
 
-                release_date = datetime.strptime(app_data["release_date"]["date"], "%d %b, %Y").date(),
+                release_date=datetime.strptime(app_data["release_date"]["date"], "%d %b, %Y").date(),
                 coming_soon=bool(app_data["release_date"]["coming_soon"]),
 
-                background=app_data["background"],
-                background_raw=app_data["background_raw"],
+                background=app_data.get("background"),
+                background_raw=app_data.get("background_raw"),
                 ratings=app_data["ratings"]
             )
             db.merge(data)
