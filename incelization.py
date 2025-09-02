@@ -33,10 +33,7 @@ config.CELERY_APP = Celery(
     "worker",
     broker=config.CELERY_BROKER_URL,
 )
-if config.REDIS_CACHE_URL:
-    config.REDIS_LOCK = redis.from_url(config.REDIS_CACHE_URL)
-else:
-    config.REDIS_LOCK = fakeredis.FakeStrictRedis()
+config.REDIS_LOCK = redis.from_url(config.REDIS_CACHE_URL)
 
 config.MINIO = Minio(
     config.MINIO_URL,
