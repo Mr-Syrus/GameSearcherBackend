@@ -17,7 +17,7 @@ def get(
         headers=None,
         max_retries=10,
         retry_delay=60,
-        min_interval=1,  # минимальный интервал между запросами (сек)
+        min_interval=5,  # минимальный интервал между запросами (сек)
         stream=False,
         timeout=60
 ):
@@ -26,16 +26,13 @@ def get(
 
         # --- лимитер на redis ---
         key = "last_request_ts"
-        last_ts = config.REDIS_LOCK.get(key)
         now = time.time()
-
+        last_ts = config.REDIS_LOCK.getset(key, now)
         if last_ts is not None:
             last_ts = float(last_ts)
             wait = min_interval - (now - last_ts)
             if wait > 0:
                 time.sleep(wait)
-
-        config.REDIS_LOCK.set(key, time.time())
 
         try:
             response = requests.get(
