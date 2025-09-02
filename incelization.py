@@ -39,7 +39,7 @@ else:
     config.REDIS_LOCK = fakeredis.FakeStrictRedis()
 
 config.MINIO = Minio(
-    "minio.stellarp.com",          # адрес MinIO
+    "192.168.0.192",          # адрес MinIO
     access_key=config.ACCESS_KEY,   # логин
     secret_key=config.SECRET_KEY,   # пароль
     secure=True               # True если https
