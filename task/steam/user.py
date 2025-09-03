@@ -2,6 +2,8 @@ import requests
 from celery import Task
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
+
+from my_lib.queue import QueueEnum
 from .games import games as games_task
 import config
 import my_requests
@@ -10,7 +12,7 @@ from db.steam.user_games import UserGames
 from my_lib.split_list import split_list
 
 
-@config.CELERY_APP.task(bind=True)
+@config.CELERY_APP.task(bind=True, queue=QueueEnum.STEAM.value)
 def user(self: Task, steam_id: int):
     url = f"https://api.steampowered.com/IPlayerService/GetOwnedGames/v1/"
     r = my_requests.get(url, params={

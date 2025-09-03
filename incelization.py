@@ -18,6 +18,9 @@ import fakeredis
 import my_lib.db
 import config
 from minio import Minio
+from kombu import Queue
+
+from my_lib.queue import QueueEnum
 
 # FastApi
 config.APP = FastAPI()
@@ -33,6 +36,10 @@ config.CELERY_APP = Celery(
     "worker",
     broker=config.CELERY_BROKER_URL,
 )
+config.CELERY_APP.conf.task_default_queue = QueueEnum.DEFAULT.value
+config.CELERY_APP.conf.task_queues = tuple([Queue(i.value) for i in QueueEnum])
+config.CELERY_APP.conf.timezone = 'UTC'
+
 # config.REDIS_LOCK = redis.from_url(config.REDIS_CACHE_URL)
 config.REDIS_LOCK = fakeredis.FakeStrictRedis()
 

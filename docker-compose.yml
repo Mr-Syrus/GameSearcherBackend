@@ -25,11 +25,26 @@ services:
     environment:
       <<: *common-env
 
-  celery_worker:
+  celery_worker_steam:
     build:
       context: .
       dockerfile: Dockerfile
-    command: celery -A celery_start worker --loglevel=info --concurrency=1
+    command: celery -A celery_start worker --loglevel=info --concurrency=1 -Q steam
+    volumes:
+      - .:/app
+    depends_on: *common-depends
+    environment:
+      <<: *common-env
+    restart: unless-stopped
+    networks:
+      - internal
+      - minio_network
+
+  celery_worker_default:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: celery -A celery_start worker --loglevel=info --concurrency=10 -Q default
     volumes:
       - .:/app
     depends_on: *common-depends

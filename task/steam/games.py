@@ -16,11 +16,12 @@ from db.steam.games_to_package import GamesToPackage
 from db.steam.genres import Genres
 from db.steam.package import Package
 from db.steam.screenshots import Screenshots
+from my_lib.queue import QueueEnum
 from my_lib.split_list import split_list
 from . import img
 
 
-@config.CELERY_APP.task(bind=True)
+@config.CELERY_APP.task(bind=True, queue=QueueEnum.STEAM.value)
 def scheduler_games(self: Task):
     url = "https://api.steampowered.com/ISteamApps/GetAppList/v2/"
     response = my_requests.get(url)
@@ -33,7 +34,7 @@ def scheduler_games(self: Task):
         games.apply_async((app["appid"],))
 
 
-@config.CELERY_APP.task(bind=True)
+@config.CELERY_APP.task(bind=True, queue=QueueEnum.STEAM.value)
 def games(self: Task, id: int):
     with config.DB.get_db_session() as db:
         db: Session

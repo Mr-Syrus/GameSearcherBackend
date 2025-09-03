@@ -11,10 +11,11 @@ from sqlalchemy.orm import Session
 import config
 import my_requests
 from db.steam.games import Games
+from my_lib.queue import QueueEnum
 from my_lib.split_list import split_list
 
 
-@config.CELERY_APP.task(bind=True)
+@config.CELERY_APP.task(bind=True, queue=QueueEnum.STEAM.value)
 def img(self: Task, url:str):
     try:
         # 1. скачать файл в память
