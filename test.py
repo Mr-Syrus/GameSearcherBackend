@@ -14,8 +14,8 @@ incelization.init()
 app = config.APP
 
 logging.basicConfig(level=logging.INFO)
-scheduler_user_games()
-# user("76561199001568702")
+# scheduler_user_games()
+user("76561199851203448")
 # scheduler_games()
 # scheduler_games.apply_async()
 # games(508620)

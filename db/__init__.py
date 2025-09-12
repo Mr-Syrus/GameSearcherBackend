@@ -1,5 +1,5 @@
 import config
-from . import steam, account
+from . import steam, user
 
 def init():
     # config.DB.drop_all()
