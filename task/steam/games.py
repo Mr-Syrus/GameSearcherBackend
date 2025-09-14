@@ -173,9 +173,8 @@ def games(self: Task, id: int):
 
 @config.CELERY_APP.task(bind=True, queue=QueueEnum.STEAM.value)
 def get_reviews(self: Task, id: int):
-    APP_ID = 730  # CS:GO
     r = requests.get(
-        f"https://store.steampowered.com/appreviews/{APP_ID}",
+        f"https://store.steampowered.com/appreviews/{id}",
         params={
             "json": 1,
             "filter": "all",

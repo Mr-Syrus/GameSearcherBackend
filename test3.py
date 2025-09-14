@@ -37,7 +37,6 @@ def file_exists(key):
 with config.DB.get_db_session() as db:
     db: Session
     gs = db.query(Games).all()
-
     for g in tqdm(gs, desc="Games"):
         get_reviews.apply_async((g.id,))
 
@@ -80,6 +79,7 @@ with config.DB.get_db_session() as db:
 
             pbar.set_postfix({"scheduled_images": img_count/5})
 
+    db.commit()
 
     img_conut = 0
     sc = db.query(Screenshots).all()
@@ -96,3 +96,5 @@ with config.DB.get_db_session() as db:
                 img_count += 1
 
             pbar.set_postfix({"scheduled_images": img_count/2})
+
+    db.commit()

@@ -36,6 +36,10 @@ class Game(BaseModel):
     capsule_image: Optional[str]
     capsule_imagev5: Optional[str]
 
+    bucket_header_image: Optional[str]
+    bucket_capsule_image: Optional[str]
+    bucket_capsule_imagev5: Optional[str]
+
     website: Optional[str]
 
     pc_requirements: Optional[Any]
@@ -55,7 +59,15 @@ class Game(BaseModel):
     background: Optional[str]
     background_raw: Optional[str]
 
+    bucket_background: Optional[str]
+    bucket_background_raw: Optional[str]
+
     ratings: Optional[Dict[str, Any]]
+
+    total_reviews: Optional[int]
+    total_reviews_positive: Optional[int]
+    total_reviews_negative: Optional[int]
+    reviews_score: Optional[int]
 
     class Config:
         orm_mode = True
