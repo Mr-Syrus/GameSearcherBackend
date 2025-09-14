@@ -40,7 +40,7 @@ with config.DB.get_db_session() as db:
 
     for g in tqdm(gs, desc="Games"):
         get_reviews.apply_async((g.id,))
-    
+
     last_100 = (
         db.query(UserGames)
         .order_by(UserGames.id.desc())
