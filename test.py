@@ -26,7 +26,7 @@ with config.DB.get_db_session() as db:
     db: Session
 
     last_100 = (
-        db.session.query(UserGames)
+        db.query(UserGames)
         .order_by(UserGames.id.desc())
         .limit(100)
         .all()

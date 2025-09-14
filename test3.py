@@ -11,7 +11,7 @@ from db.steam.games import Games
 from db.steam.screenshots import Screenshots
 from db.steam.user_games import UserGames
 from task.steam import img
-from task.steam.games import games, scheduler_games
+from task.steam.games import games, scheduler_games, get_reviews
 from task.steam.user import user
 from task.steam_virtual_user.user_games import scheduler_user_games
 from tqdm import tqdm
@@ -23,6 +23,7 @@ app = config.APP
 
 logging.basicConfig(level=logging.INFO)
 
+
 def file_exists(key):
     try:
         config.MINIO.stat_object(config.MINIO_BUCKET_NAME, key)
@@ -32,10 +33,24 @@ def file_exists(key):
             return False
         raise  # другая ошибка
 
+
 with config.DB.get_db_session() as db:
     db: Session
+    gs = db.query(Games).all()
 
-    sc = db.session.query(Screenshots).all()
+    for g in tqdm(gs, desc="Games"):
+        get_reviews.apply_async((g.id,))
+    
+    last_100 = (
+        db.query(UserGames)
+        .order_by(UserGames.id.desc())
+        .limit(100)
+        .all()
+    )
+    for i in tqdm(last_100, desc="pars"):
+        user(i.id)
+
+    sc = db.query(Screenshots).all()
     for s in tqdm(sc, desc="Screenshots"):
         s.bucket_path_thumbnail = urlparse(s.path_thumbnail).path
         if not file_exists(s.bucket_path_thumbnail):
@@ -45,8 +60,6 @@ with config.DB.get_db_session() as db:
         if not file_exists(s.bucket_path_full):
             img.img.apply_async((s.path_full,))
 
-
-    gs = db.session.query(Games).all()
     for g in tqdm(gs, desc="Games"):
         g.bucket_header_image = urlparse(g.header_image).path
         if not file_exists(g.bucket_header_image):
