@@ -62,6 +62,7 @@ class Games(config.DB.Model):
     # backgrounds
     background = Column(Text)
     background_raw = Column(Text)
+
     bucket_background = Column(Text)
     bucket_background_raw = Column(Text)
 
