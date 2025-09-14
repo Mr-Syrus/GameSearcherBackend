@@ -5,6 +5,10 @@ from sqlalchemy import pool
 
 from alembic import context
 import config as my_config
+import incelization
+
+# Initialization
+incelization.init()
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -20,7 +24,7 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-target_metadata = None
+target_metadata = my_config.DB.Base.metadata
 
 # other values from the config, defined by the needs of env.py,
 # can be acquired:

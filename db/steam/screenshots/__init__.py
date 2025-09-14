@@ -12,6 +12,6 @@ class Screenshots(config.DB.Model):
     path_thumbnail = Column(Text, nullable=False)
     path_full = Column(Text, nullable=False)
 
-    bucket_path_thumbnail = Column(Text, nullable=False)
-    bucket_path_full = Column(Text, nullable=False)
+    bucket_path_thumbnail = Column(Text, nullable=True)
+    bucket_path_full = Column(Text, nullable=True)
 
