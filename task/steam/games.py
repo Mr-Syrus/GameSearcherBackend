@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import List
+from urllib.parse import urlparse
 
 import requests
 from celery import Task
@@ -28,7 +29,7 @@ def scheduler_games(self: Task):
     data_list = response.json()
     for app in data_list["applist"]["apps"]:
         if "dlc" in app["name"].lower():
-            print("scip:",app["appid"], app["name"])
+            print("scip:", app["appid"], app["name"])
             continue
         print(app["appid"], app["name"])
         games.apply_async((app["appid"],))
@@ -106,8 +107,12 @@ def games(self: Task, id: int):
                 db.merge(Screenshots(
                     id_games=id,
                     id=screenshot["id"],
+
                     path_thumbnail=screenshot["path_thumbnail"],
                     path_full=screenshot["path_full"],
+
+                    bucket_path_thumbnail=urlparse(app_data.get("path_thumbnail")).path,
+                    bucket_path_full=urlparse(app_data.get("path_full")).path,
                 ))
 
                 img.img.apply_async((screenshot["path_thumbnail"],))
@@ -128,11 +133,15 @@ def games(self: Task, id: int):
                 about_the_game=app_data["about_the_game"],
                 short_description=app_data["short_description"],
 
-                supported_languages=app_data.get("supported_languages","").split(", "),
+                supported_languages=app_data.get("supported_languages", "").split(", "),
 
                 header_image=app_data.get("header_image"),
                 capsule_image=app_data.get("capsule_image"),
                 capsule_imagev5=app_data.get("capsule_imagev5"),
+
+                bucket_header_image=urlparse(app_data.get("header_image")).path,
+                bucket_capsule_image=urlparse(app_data.get("capsule_image")).path,
+                bucket_capsule_imagev5=urlparse(app_data.get("capsule_imagev5")).path,
 
                 website=app_data["website"],
 
@@ -152,9 +161,48 @@ def games(self: Task, id: int):
 
                 background=app_data.get("background"),
                 background_raw=app_data.get("background_raw"),
+
+                bucket_background=urlparse(app_data.get("background")).path,
+                bucket_background_raw=urlparse(app_data.get("background_raw")).path,
+
                 ratings=app_data["ratings"]
             )
             db.merge(data)
+        db.commit()
+    get_reviews(id)
+
+@config.CELERY_APP.task(bind=True, queue=QueueEnum.STEAM.value)
+def get_reviews(self: Task, id: int):
+    APP_ID = 730  # CS:GO
+    r = requests.get(
+        f"https://store.steampowered.com/appreviews/{APP_ID}",
+        params={
+            "json": 1,
+            "filter": "all",
+            "language": "all",
+            "day_range": 9223372036854775807,  # все отзывы
+            "review_type": "all",
+            "purchase_type": "all",
+            "num_per_page": 0,  # без загрузки отзывов, только статистика
+        },
+        headers={"User-Agent": "Mozilla/5.0"}
+    )
+
+    data = r.json()
+    summary = data["query_summary"]
+
+    total = summary["total_reviews"]
+    positive = summary["total_positive"]
+    negative = summary["total_negative"]
+    score = (positive / total * 100) if total else 0
+
+    with config.DB.get_db_session() as db:
+        db: Session
+        data = db.query(Games).filter(id=id).first()
+        data.total_reviews = total
+        data.total_reviews_positive = positive
+        data.total_reviews_negative = negative
+        data.reviews_score = score
         db.commit()
 
 

@@ -33,6 +33,10 @@ class Games(config.DB.Model):
     capsule_image = Column(Text)
     capsule_imagev5 = Column(Text)
 
+    bucket_header_image = Column(Text)
+    bucket_capsule_image = Column(Text)
+    bucket_capsule_imagev5 = Column(Text)
+
     # website
     website = Column(Text)
 
@@ -58,6 +62,14 @@ class Games(config.DB.Model):
     # backgrounds
     background = Column(Text)
     background_raw = Column(Text)
+    bucket_background = Column(Text)
+    bucket_background_raw = Column(Text)
 
     # ratings
     ratings = Column(JSON)
+
+    # reviews
+    total_reviews = Column(Integer)
+    total_reviews_positive = Column(Integer)
+    total_reviews_negative = Column(Integer)
+    reviews_score = Column(Integer)

@@ -64,7 +64,7 @@ class Game(BaseModel):
 def all(
         db: DbSession = Depends(config.DB.get_db),
 ):
-    return db.query(Games).limit(1000).all()
+    return db.query(Games).filter(Games.type=="game").limit(10).all()
 
 
 def init():

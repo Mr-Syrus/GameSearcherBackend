@@ -40,6 +40,21 @@ services:
       - internal
       - minio_network
 
+  celery_worker_steam_img:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: celery -A celery_start worker --loglevel=info --concurrency=3 -Q steam_img
+    volumes:
+      - .:/app
+    depends_on: *common-depends
+    environment:
+      <<: *common-env
+    restart: unless-stopped
+    networks:
+      - internal
+      - minio_network
+
   celery_worker_default:
     build:
       context: .
@@ -97,8 +112,6 @@ services:
       redis-server
       --maxmemory 2gb
       --maxmemory-policy allkeys-lru
-      --save ""
-      --appendonly no
     restart: unless-stopped
     ports:
       - "6379:6379"

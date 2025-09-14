@@ -15,11 +15,11 @@ from my_lib.queue import QueueEnum
 from my_lib.split_list import split_list
 
 
-@config.CELERY_APP.task(bind=True, queue=QueueEnum.STEAM.value)
+@config.CELERY_APP.task(bind=True, queue=QueueEnum.STEAM_IMG.value)
 def img(self: Task, url:str):
     try:
         # 1. скачать файл в память
-        r = my_requests.get(url, stream=True, timeout=30)
+        r = requests.get(url, stream=True, timeout=30)
         r.raise_for_status()
         data = io.BytesIO(r.content)
 
