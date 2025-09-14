@@ -5,7 +5,7 @@ from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException, Response, Query, Cookie
 from pydantic import BaseModel
 from sqlalchemy import *
-from sqlalchemy.orm import Session as DbSession
+from sqlalchemy.orm import Session as DbSession, load_only
 
 import config
 from db.likes_games import LikesGames
@@ -29,52 +29,14 @@ from dependency.user import get_user as dependency_get_user
 class Game(BaseModel):
     id: int
     name: str
-    is_free: bool = False
-
-    detailed_description: Optional[str]
-    about_the_game: Optional[str]
-    short_description: Optional[str]
-
-    fullgame_appid: Optional[int]
-    fullgame_name: Optional[str]
-
-    supported_languages: Optional[List[str]]
-
     header_image: Optional[str]
-    capsule_image: Optional[str]
-    capsule_imagev5: Optional[str]
-
-    bucket_header_image: Optional[str]
-    bucket_capsule_image: Optional[str]
-    bucket_capsule_imagev5: Optional[str]
-
-    website: Optional[str]
-
-    pc_requirements: Optional[Any]
-    mac_requirements: Optional[Any]
-    linux_requirements: Optional[Any]
-
-    developers: Optional[List[str]]
-    publishers: Optional[List[str]]
 
     platforms_windows: bool = False
     platforms_mac: bool = False
     platforms_linux: bool = False
 
     release_date: Optional[date]
-    coming_soon: bool = False
 
-    background: Optional[str]
-    background_raw: Optional[str]
-
-    bucket_background: Optional[str]
-    bucket_background_raw: Optional[str]
-
-    ratings: Optional[Dict[str, Any]]
-
-    total_reviews: Optional[int]
-    total_reviews_positive: Optional[int]
-    total_reviews_negative: Optional[int]
     reviews_score: Optional[int]
 
     class Config:
@@ -83,6 +45,7 @@ class Game(BaseModel):
 
 def all(
         is_liked: bool = Query(False),
+        is_recommendations: bool = Query(False),
 
         genres: Optional[List[str]] = Query(None),
         categories: Optional[List[str]] = Query(None),
@@ -104,7 +67,18 @@ def all(
 
         db: DbSession = Depends(config.DB.get_db),
 ):
-    query = db.query(Games).filter(Games.type == "game")
+    query = db.query(Games).filter(Games.type == "game").options(
+        load_only(
+            Games.id,
+            Games.name,
+            Games.header_image,
+            Games.platforms_windows,
+            Games.platforms_mac,
+            Games.platforms_linux,
+            Games.release_date,
+            Games.reviews_score
+        )
+    )
 
     if is_liked:
         user = dependency_get_user(session_key, db)
@@ -142,13 +116,18 @@ def all(
 
     if min_year:
         query = query.filter(Games.release_date >= date(min_year, 1, 1))
+
     if max_year:
         query = query.filter(Games.release_date <= date(max_year, 12, 31))
 
     if min_rating:
         query = query.filter(Games.reviews_score >= min_rating)
+
     if max_rating:
         query = query.filter(Games.reviews_score <= max_rating)
+
+    if is_recommendations:
+        pass
 
     return query.limit(limit).offset((page - 1) * limit).all()
 
