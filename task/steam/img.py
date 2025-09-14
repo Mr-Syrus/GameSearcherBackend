@@ -14,17 +14,28 @@ from db.steam.games import Games
 from my_lib.queue import QueueEnum
 from my_lib.split_list import split_list
 
+def file_exists(key):
+    try:
+        config.MINIO.stat_object(config.MINIO_BUCKET_NAME, key)
+        return True
+    except S3Error as e:
+        if e.code == "NoSuchKey":
+            return False
+        raise  # другая ошибка
 
 @config.CELERY_APP.task(bind=True, queue=QueueEnum.STEAM_IMG.value)
 def img(self: Task, url:str):
     try:
-        # 1. скачать файл в память
+        # 1. имя объекта (берем из url)
+        object_name = urlparse(url).path
+        if file_exists(object_name):
+            return
+
+        # 2. скачать файл в память
         r = requests.get(url, stream=True, timeout=30)
         r.raise_for_status()
         data = io.BytesIO(r.content)
 
-        # 2. имя объекта (берем из url)
-        object_name = urlparse(url).path
 
         # 3. загрузить в MinIO
         config.MINIO.put_object(

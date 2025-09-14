@@ -10,12 +10,16 @@ import json
 import config
 import my_requests
 from db.steam.categories import Categories
+from db.steam.developer import Developer
 from db.steam.games import Games
 from db.steam.games_to_categories import GamesToCategories
+from db.steam.games_to_developer import GamesToDeveloper
 from db.steam.games_to_genres import GamesToGenres
 from db.steam.games_to_package import GamesToPackage
+from db.steam.games_to_publisher import GamesToPublisher
 from db.steam.genres import Genres
 from db.steam.package import Package
+from db.steam.publisher import Publisher
 from db.steam.screenshots import Screenshots
 from my_lib.queue import QueueEnum
 from my_lib.split_list import split_list
@@ -101,6 +105,32 @@ def games(self: Task, id: int):
                 db.merge(GamesToGenres(
                     id_games=id,
                     id_genres=genre["id"]
+                ))
+
+            for developer_name in app_data.get("developers", []):
+                developer = db.query(Developer).filter(Developer.name == developer_name).first()
+
+                if not developer:
+                    developer = Developer(name=developer_name)
+                    db.add(developer)
+                    db.flush()
+
+                db.merge(GamesToDeveloper(
+                    id_games=id,
+                    id_developer=developer.id
+                ))
+
+            for publisher_name in app_data.get("publishers", []):
+                publisher = db.query(Publisher).filter(Publisher.name == publisher_name).first()
+
+                if not publisher:
+                    publisher = Publisher(name=publisher_name)
+                    db.add(publisher)
+                    db.flush()
+
+                db.merge(GamesToPublisher(
+                    id_games=id,
+                    id_publisher=publisher.id
                 ))
 
             for screenshot in app_data.get("screenshots", []):

@@ -36,10 +36,11 @@ def file_exists(key):
 
 with config.DB.get_db_session() as db:
     db: Session
+    c=0
     gs = db.query(Games).all()
-    for g in tqdm(gs, desc="Games"):
-        get_reviews.apply_async((g.id,))
-
+    # for g in tqdm(gs, desc="Games"):
+    #     get_reviews.apply_async((g.id,))
+    #
     last_100 = (
         db.query(UserGames)
         .order_by(UserGames.id.desc())
@@ -52,6 +53,7 @@ with config.DB.get_db_session() as db:
     img_count = 0
     with tqdm(gs, desc="Games") as pbar:
         for g in pbar:
+            c+=1
             g.bucket_header_image = urlparse(g.header_image).path
             if not file_exists(g.bucket_header_image):
                 img.img.apply_async((g.header_image,))
@@ -78,7 +80,8 @@ with config.DB.get_db_session() as db:
                 img_count += 1
 
             pbar.set_postfix({"scheduled_images": img_count/5})
-
+            if c%1000==0:
+                db.commit()
     db.commit()
 
     img_conut = 0
@@ -96,5 +99,6 @@ with config.DB.get_db_session() as db:
                 img_count += 1
 
             pbar.set_postfix({"scheduled_images": img_count/2})
-
+            if c%1000==0:
+                db.commit()
     db.commit()

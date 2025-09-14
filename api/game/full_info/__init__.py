@@ -9,15 +9,9 @@ from sqlalchemy.orm import Session as DbSession
 
 import config
 from db.likes_games import LikesGames
-from db.steam.categories import Categories
-from db.steam.developer import Developer
 from db.steam.games import Games
-from db.steam.games_to_categories import GamesToCategories
-from db.steam.games_to_developer import GamesToDeveloper
 from db.steam.games_to_genres import GamesToGenres
-from db.steam.games_to_publisher import GamesToPublisher
 from db.steam.genres import Genres
-from db.steam.publisher import Publisher
 from db.user import User
 from db.session import Session
 from typing import List, Optional, Dict, Any
@@ -28,7 +22,9 @@ from dependency.user import get_user as dependency_get_user
 
 class Game(BaseModel):
     id: int
+    type: Optional[str]
     name: str
+    required_age: int = 0
     is_free: bool = False
 
     detailed_description: Optional[str]
@@ -78,24 +74,22 @@ class Game(BaseModel):
     reviews_score: Optional[int]
 
     class Config:
-        from_attributes = True
+        orm_mode = True
 
 
 def all(
         is_liked: bool = Query(False),
 
         genres: Optional[List[str]] = Query(None),
-        categories: Optional[List[str]] = Query(None),
-        developers: Optional[List[str]] = Query(None),
-        publishers: Optional[List[str]] = Query(None),
 
         platforms: Optional[List[str]] = Query(None),
+        developers: Optional[List[str]] = Query(None),
 
-        min_year: Optional[int] = Query(None),
-        max_year: Optional[int] = Query(None),
+        min_year: Optional[List[str]] = Query(None),
+        max_year: Optional[List[str]] = Query(None),
 
-        min_rating: Optional[int] = Query(None),
-        max_rating: Optional[int] = Query(None),
+        min_rating: Optional[List[str]] = Query(None),
+        max_rating: Optional[List[str]] = Query(None),
 
         page: int = Query(1, ge=1),
         limit: int = Query(100, ge=1, le=100),
@@ -116,21 +110,6 @@ def all(
             .join(Genres, GamesToGenres.id_genres == Genres.id) \
             .filter(Genres.name.in_(genres))
 
-    if categories:
-        query = query.join(GamesToCategories, Games.id == GamesToCategories.id_games) \
-            .join(Categories, GamesToCategories.id_categories == Categories.id) \
-            .filter(Categories.name.in_(categories))
-
-    if developers:
-        query = query.join(GamesToDeveloper, Games.id == GamesToDeveloper.id_games) \
-            .join(Developer, GamesToDeveloper.id_developer == Developer.id) \
-            .filter(Developer.name.in_(developers))
-
-    if publishers:
-        query = query.join(GamesToPublisher, Games.id == GamesToPublisher.id_games) \
-            .join(Publisher, GamesToPublisher.id_publisher == Publisher.id) \
-            .filter(Publisher.name.in_(publishers))
-
     if platforms:
         platforms = set(platforms)
         if "windows" in platforms:
@@ -140,15 +119,8 @@ def all(
         if "mac" in platforms:
             query = query.filter(Games.platforms_mac == True)
 
-    if min_year:
-        query = query.filter(Games.release_date >= date(min_year, 1, 1))
-    if max_year:
-        query = query.filter(Games.release_date <= date(max_year, 12, 31))
-
-    if min_rating:
-        query = query.filter(Games.reviews_score >= min_rating)
-    if max_rating:
-        query = query.filter(Games.reviews_score <= max_rating)
+    if developers:
+        query = query.filter(Games.developers.overlap(developers))
 
     return query.limit(limit).offset((page - 1) * limit).all()
 

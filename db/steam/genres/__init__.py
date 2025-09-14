@@ -7,5 +7,6 @@ class Genres(config.DB.Model):
     __table_args__ = {"schema": "steam"}
 
     id = Column(Integer, primary_key=True)
-    name = Column(Text, nullable=False)
+    name = Column(Text, nullable=False, index=True)
+    # name_ru = Column(Text)
 
