@@ -198,7 +198,7 @@ def get_reviews(self: Task, id: int):
 
     with config.DB.get_db_session() as db:
         db: Session
-        data = db.query(Games).filter(id=id).first()
+        data = db.query(Games).filter(Games.id==id).first()
         data.total_reviews = total
         data.total_reviews_positive = positive
         data.total_reviews_negative = negative

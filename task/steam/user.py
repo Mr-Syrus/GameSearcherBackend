@@ -37,7 +37,7 @@ def user(self: Task, steam_id: int):
                 playtime_hours=playtime_hours,
                 rtime_last_played=rtime_last_played,
             ))
-            if not db.query(Games).get(appid):
+            if not db.query(Games.id).filter_by(id=appid).first():
                 games_task.apply_async((appid,))
         db.commit()
         url = f"https://api.steampowered.com/ISteamUser/GetFriendList/v1/"

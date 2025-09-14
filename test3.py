@@ -48,35 +48,51 @@ with config.DB.get_db_session() as db:
         .all()
     )
     for i in tqdm(last_100, desc="pars"):
-        user(i.id)
+        user.apply_async((i.id,))
 
+    img_count = 0
+    with tqdm(gs, desc="Games") as pbar:
+        for g in pbar:
+            g.bucket_header_image = urlparse(g.header_image).path
+            if not file_exists(g.bucket_header_image):
+                img.img.apply_async((g.header_image,))
+                img_count += 1
+
+            g.bucket_capsule_image = urlparse(g.capsule_image).path
+            if not file_exists(g.bucket_capsule_image):
+                img.img.apply_async((g.capsule_image,))
+                img_count += 1
+
+            g.bucket_capsule_imagev5 = urlparse(g.capsule_imagev5).path
+            if not file_exists(g.bucket_capsule_imagev5):
+                img.img.apply_async((g.capsule_imagev5,))
+                img_count += 1
+
+            g.bucket_background = urlparse(g.background).path
+            if not file_exists(g.bucket_background):
+                img.img.apply_async((g.background,))
+                img_count += 1
+
+            g.bucket_background_raw = urlparse(g.background_raw).path
+            if not file_exists(g.bucket_background_raw):
+                img.img.apply_async((g.background_raw,))
+                img_count += 1
+
+            pbar.set_postfix({"scheduled_images": img_count/5})
+
+
+    img_conut = 0
     sc = db.query(Screenshots).all()
-    for s in tqdm(sc, desc="Screenshots"):
-        s.bucket_path_thumbnail = urlparse(s.path_thumbnail).path
-        if not file_exists(s.bucket_path_thumbnail):
-            img.img.apply_async((s.path_thumbnail,))
+    with tqdm(sc, desc="Screenshots") as pbar:
+        for s in pbar:
+            s.bucket_path_thumbnail = urlparse(s.path_thumbnail).path
+            if not file_exists(s.bucket_path_thumbnail):
+                img.img.apply_async((s.path_thumbnail,))
+                img_count += 1
 
-        s.bucket_path_full = urlparse(s.path_full).path
-        if not file_exists(s.bucket_path_full):
-            img.img.apply_async((s.path_full,))
+            s.bucket_path_full = urlparse(s.path_full).path
+            if not file_exists(s.bucket_path_full):
+                img.img.apply_async((s.path_full,))
+                img_count += 1
 
-    for g in tqdm(gs, desc="Games"):
-        g.bucket_header_image = urlparse(g.header_image).path
-        if not file_exists(g.bucket_header_image):
-            img.img.apply_async((g.header_image,))
-
-        g.bucket_capsule_image = urlparse(g.capsule_image).path
-        if not file_exists(g.bucket_capsule_image):
-            img.img.apply_async((g.capsule_image,))
-
-        g.bucket_capsule_imagev5 = urlparse(g.capsule_imagev5).path
-        if not file_exists(g.bucket_capsule_imagev5):
-            img.img.apply_async((g.capsule_imagev5,))
-
-        g.bucket_background = urlparse(g.background).path
-        if not file_exists(g.bucket_background):
-            img.img.apply_async((g.background,))
-
-        g.bucket_background_raw = urlparse(g.background_raw).path
-        if not file_exists(g.bucket_background_raw):
-            img.img.apply_async((g.background_raw,))
+            pbar.set_postfix({"scheduled_images": img_count/2})
