@@ -41,21 +41,19 @@ with config.DB.get_db_session() as db:
     # for g in tqdm(gs, desc="Games"):
     #     get_reviews.apply_async((g.id,))
 
-    # last_100 = (
-    #     db.query(UserGames)
-    #     .order_by(UserGames.id.desc())
-    #     .limit(100)
-    #     .all()
-    # )
-    # for i in tqdm(last_100, desc="pars"):
-    #     user.apply_async((i.id,))
+    last_100 = (
+        db.query(UserGames)
+        .order_by(UserGames.id.desc())
+        .limit(100)
+        .all()
+    )
+    for i in tqdm(last_100, desc="pars"):
+        user.apply_async((i.id,))
 
     img_count = 0
 
     def process_image(url, bucket_attr):
         global img_count
-        img.img.apply_async((url,))
-        return
         object_name = urlparse(url).path
         webp_name = object_name + ".webp"
         setattr(bucket_attr[0], bucket_attr[1], webp_name)
