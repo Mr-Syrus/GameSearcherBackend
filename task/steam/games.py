@@ -134,15 +134,17 @@ def games(self: Task, id: int):
                 ))
 
             for screenshot in app_data.get("screenshots", []):
+                if screenshot.get("path_full") is None:
+                    continue
                 db.merge(Screenshots(
                     id_games=id,
                     id=screenshot["id"],
 
-                    path_thumbnail=screenshot["path_thumbnail"],
-                    path_full=screenshot["path_full"],
+                    path_thumbnail=screenshot.get("path_thumbnail"),
+                    path_full=screenshot.get("path_full"),
 
-                    bucket_path_thumbnail=urlparse(app_data.get("path_thumbnail")).path + ".webp",
-                    bucket_path_full=urlparse(app_data.get("path_full")).path + ".webp",
+                    bucket_path_thumbnail=urlparse(screenshot.get("path_thumbnail")).path + ".webp" if app_data.get("path_thumbnail") else None,
+                    bucket_path_full=urlparse(screenshot.get("path_full")).path + ".webp",
                 ))
 
                 img.img.apply_async((screenshot["path_thumbnail"],))

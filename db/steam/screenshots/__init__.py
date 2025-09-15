@@ -9,9 +9,9 @@ class Screenshots(config.DB.Model):
     id_games = Column(Integer, primary_key=True)
     id = Column(Integer, primary_key=True)
 
-    path_thumbnail = Column(Text, nullable=False)
+    path_thumbnail = Column(Text)
     path_full = Column(Text, nullable=False)
 
-    bucket_path_thumbnail = Column(Text, nullable=True)
+    bucket_path_thumbnail = Column(Text)
     bucket_path_full = Column(Text, nullable=True)
 

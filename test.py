@@ -17,19 +17,19 @@ app = config.APP
 
 logging.basicConfig(level=logging.INFO)
 # scheduler_user_games()
-user("76561199851203448")
+# user("76561199851203448")
 # scheduler_games()
 # scheduler_games.apply_async()
-# games(508620)
+games(3180070)
 
-with config.DB.get_db_session() as db:
-    db: Session
-
-    last_100 = (
-        db.query(UserGames)
-        .order_by(UserGames.id.desc())
-        .limit(100)
-        .all()
-    )
-    for i in last_100:
-        user(i.id)
+# with config.DB.get_db_session() as db:
+#     db: Session
+#
+#     last_100 = (
+#         db.query(UserGames)
+#         .order_by(UserGames.id.desc())
+#         .limit(100)
+#         .all()
+#     )
+#     for i in last_100:
+#         user(i.id)
