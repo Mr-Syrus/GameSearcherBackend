@@ -18,8 +18,8 @@ def scheduler_user_games(self: Task):
         unique_ids = [id_[0] for id_ in unique_ids]
 
     for i in unique_ids:
-        user_games(i)
-        # user_games.apply_async((i,))
+        # user_games(i)
+        user_games.apply_async((i,))
 
 
 @config.CELERY_APP.task(bind=True)
