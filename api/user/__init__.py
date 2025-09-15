@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends
 from db.user import User
 from dependency.user import get_user as dependency_get_user
 
-from . import login, register, likes
+from . import login, register, likes, details, switch_avatar
 
 
 def get_user(
@@ -19,5 +19,7 @@ def init():
     router.include_router(login.init())
     router.include_router(register.init())
     router.include_router(likes.init())
+    router.include_router(details.init())
+    router.include_router(switch_avatar.init())
 
     return router

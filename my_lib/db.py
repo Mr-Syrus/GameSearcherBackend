@@ -131,11 +131,18 @@ class DB:
     def __init__(self, url, **kwargs):
         self.engine = create_engine(url, **kwargs)
         self.Base = declarative_base()
-        self.SessionLocal = scoped_session(sessionmaker(
+        self.SessionLocal = sessionmaker(
+            autocommit=False,
+            autoflush=False,
+            bind=self.engine
+        )
+
+        self.SessionLocalScoped = scoped_session(sessionmaker(
             autocommit=False,
             autoflush=False,
             bind=self.engine
         ))
+
 
     def drop_all(self):
         self.Base.metadata.drop_all(bind=self.engine)
@@ -161,7 +168,7 @@ class DB:
             triggers = []
         for attempt in range(retries):
             try:
-                session = self.SessionLocal()
+                session = self.SessionLocalScoped()
                 # Проверяем соединение
                 session.execute(text("SELECT 1"))
                 break
@@ -188,4 +195,3 @@ class DB:
             for trigger in triggers:
                 event.remove(session, trigger.name, trigger)
             session.close()
-            # self.SessionLocal.remove()

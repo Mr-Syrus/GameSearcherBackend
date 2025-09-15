@@ -15,4 +15,5 @@ class User(config.DB.Model):
         return {
             "id": self.id,
             "name": self.name,
+            "avatar": "/bucket/" + self.avatar if self.avatar else None,
         }
