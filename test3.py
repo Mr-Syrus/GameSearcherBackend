@@ -59,7 +59,14 @@ with config.DB.get_db_session() as db:
         setattr(bucket_attr[0], bucket_attr[1], webp_name)
 
         if file_exists(object_name):
-            img.convert(object_name, webp_name)
+            try:
+                img.convert(object_name, webp_name)
+            except Exception as e:
+                print(e)
+                config.MINIO.remove_object(
+                    config.MINIO_BUCKET_NAME,
+                    webp_name,
+                )
             return
         if not file_exists(webp_name):
             img.img.apply_async((url,))

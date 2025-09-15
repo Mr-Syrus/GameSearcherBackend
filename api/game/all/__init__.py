@@ -48,6 +48,8 @@ def all(
         is_liked: bool = Query(False),
         is_recommendations: bool = Query(False),
 
+        search: Optional[str] = Query(None),
+
         genres: Optional[List[str]] = Query(None),
         categories: Optional[List[str]] = Query(None),
         developers: Optional[List[str]] = Query(None),
@@ -86,6 +88,9 @@ def all(
         user = dependency_get_user(session_key, db)
         query = query.join(LikesGames, (LikesGames.game_id == Games.id) & (LikesGames.user_id == user.id))
         query = query.filter(LikesGames.user_id == user.id)
+
+    if search:
+        query = query.filter(Games.name.ilike(f"%{search}%"))
 
     if genres:
         query = query.join(GamesToGenres, Games.id == GamesToGenres.id_games) \
