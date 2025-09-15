@@ -141,8 +141,8 @@ def games(self: Task, id: int):
                     path_thumbnail=screenshot["path_thumbnail"],
                     path_full=screenshot["path_full"],
 
-                    bucket_path_thumbnail=urlparse(app_data.get("path_thumbnail")).path,
-                    bucket_path_full=urlparse(app_data.get("path_full")).path,
+                    bucket_path_thumbnail=urlparse(app_data.get("path_thumbnail")).path + ".webp",
+                    bucket_path_full=urlparse(app_data.get("path_full")).path + ".webp",
                 ))
 
                 img.img.apply_async((screenshot["path_thumbnail"],))
@@ -169,9 +169,9 @@ def games(self: Task, id: int):
                 capsule_image=app_data.get("capsule_image"),
                 capsule_imagev5=app_data.get("capsule_imagev5"),
 
-                bucket_header_image=urlparse(app_data.get("header_image")).path,
-                bucket_capsule_image=urlparse(app_data.get("capsule_image")).path,
-                bucket_capsule_imagev5=urlparse(app_data.get("capsule_imagev5")).path,
+                bucket_header_image=urlparse(app_data.get("header_image")).path + ".webp",
+                bucket_capsule_image=urlparse(app_data.get("capsule_image")).path + ".webp",
+                bucket_capsule_imagev5=urlparse(app_data.get("capsule_imagev5")).path + ".webp",
 
                 website=app_data["website"],
 
@@ -192,8 +192,8 @@ def games(self: Task, id: int):
                 background=app_data.get("background"),
                 background_raw=app_data.get("background_raw"),
 
-                bucket_background=urlparse(app_data.get("background")).path,
-                bucket_background_raw=urlparse(app_data.get("background_raw")).path,
+                bucket_background=urlparse(app_data.get("background")).path + ".webp",
+                bucket_background_raw=urlparse(app_data.get("background_raw")).path + ".webp",
 
                 ratings=app_data["ratings"]
             )
