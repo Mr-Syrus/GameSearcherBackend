@@ -12,6 +12,7 @@ from db.likes_games import LikesGames
 from db.steam.games import Games
 from db.steam.games_to_genres import GamesToGenres
 from db.steam.genres import Genres
+from db.steam.screenshots import Screenshots
 from db.user import User
 from db.session import Session
 from typing import List, Optional, Dict, Any
@@ -74,58 +75,29 @@ class Game(BaseModel):
     reviews_score: Optional[int]
 
     class Config:
-        orm_mode = True
+        from_attributes  = True
 
 
-def all(
-        is_liked: bool = Query(False),
+class GameFull(Game):
+    screenshots: List[str]
+    genres: List[str]
 
-        genres: Optional[List[str]] = Query(None),
 
-        platforms: Optional[List[str]] = Query(None),
-        developers: Optional[List[str]] = Query(None),
-
-        min_year: Optional[List[str]] = Query(None),
-        max_year: Optional[List[str]] = Query(None),
-
-        min_rating: Optional[List[str]] = Query(None),
-        max_rating: Optional[List[str]] = Query(None),
-
-        page: int = Query(1, ge=1),
-        limit: int = Query(100, ge=1, le=100),
-
-        session_key: str | None = Cookie(default=None),
-
+def full_info(
+        id: int = Query(...),
         db: DbSession = Depends(config.DB.get_db),
 ):
-    query = db.query(Games).filter(Games.type == "game")
+    game_obj = db.query(Games).get(id)
+    game:Game = Game.model_validate(game_obj)
 
-    if is_liked:
-        user = dependency_get_user(session_key, db)
-        query = query.join(LikesGames, (LikesGames.game_id == Games.id) & (LikesGames.user_id == user.id))
-        query = query.filter(LikesGames.user_id == user.id)
-
-    if genres:
-        query = query.join(GamesToGenres, Games.id == GamesToGenres.id_games) \
-            .join(Genres, GamesToGenres.id_genres == Genres.id) \
-            .filter(Genres.name.in_(genres))
-
-    if platforms:
-        platforms = set(platforms)
-        if "windows" in platforms:
-            query = query.filter(Games.platforms_windows == True)
-        if "linux" in platforms:
-            query = query.filter(Games.platforms_linux == True)
-        if "mac" in platforms:
-            query = query.filter(Games.platforms_mac == True)
-
-    if developers:
-        query = query.filter(Games.developers.overlap(developers))
-
-    return query.limit(limit).offset((page - 1) * limit).all()
+    return GameFull(
+        screenshots=[i[0] for i in db.query(Screenshots.bucket_path_full).filter(Screenshots.id_games==id).all()],
+        genres=[i[0] for i in db.query(Genres.name).all()],
+        **game.model_dump()
+    )
 
 
 def init():
-    router = APIRouter(prefix="/all")
-    router.get("", response_model=List[Game])(all)
+    router = APIRouter(prefix="/full_info")
+    router.get("")(full_info)
     return router

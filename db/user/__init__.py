@@ -7,6 +7,7 @@ class User(config.DB.Model):
 
     id = Column(Integer, primary_key=True)
     name = Column(String(32), nullable=False, unique=True)
+    avatar = Column(Text)
     login = Column(Text, nullable=False, unique=True)
     password = Column(Text, nullable=False)
 

@@ -30,6 +30,7 @@ class Game(BaseModel):
     id: int
     name: str
     header_image: Optional[str]
+    bucket_header_image: Optional[str]
 
     platforms_windows: bool = False
     platforms_mac: bool = False
@@ -61,7 +62,7 @@ def all(
         max_rating: Optional[int] = Query(None),
 
         page: int = Query(1, ge=1),
-        limit: int = Query(100, ge=1, le=100),
+        limit: int = Query(20, ge=1, le=100),
 
         session_key: str | None = Cookie(default=None),
 
@@ -72,6 +73,7 @@ def all(
             Games.id,
             Games.name,
             Games.header_image,
+            Games.bucket_header_image,
             Games.platforms_windows,
             Games.platforms_mac,
             Games.platforms_linux,

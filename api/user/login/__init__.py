@@ -44,7 +44,7 @@ def login(
     )
     db.add(s)
     db.commit()
-    response.set_cookie(key="session_key", value=s.key, httponly=True)
+    response.set_cookie(key="session_key", value=s.key, httponly=False)
     return {"detail": "ok"}
 
 
