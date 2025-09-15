@@ -56,7 +56,7 @@ def convert(object_name, object_name_webp):
 def img(self: Task, url:str):
     try:
         # 1. имя объекта (берем из url)
-        object_name = urlparse(url).path + ".webp"
+        object_name = urlparse(url).path
         object_name_webp = urlparse(url).path + ".webp"
         if file_exists(object_name):
             return
