@@ -18,67 +18,73 @@ def scheduler_user_games(self: Task):
         unique_ids = [id_[0] for id_ in unique_ids]
 
     for i in unique_ids:
-        # user_games(i)
-        user_games.apply_async((i,))
+        user_games(i)
+        # user_games.apply_async((i,))
 
 
 @config.CELERY_APP.task(bind=True)
 def user_games(self: Task, id_games: int):
-    with (config.DB.get_db_session() as db):
+    with config.DB.get_db_session() as db:
         db: Session
 
-        # avg_playtime = db.query(func.avg(UserGames.playtime_hours)) \
-        #     .filter(UserGames.id_games == id_games) \
-        #     .scalar()
-        median_playtime = db.query(func.percentile_cont(0.5).within_group(UserGames.playtime_hours)) \
-            .filter(
+        # 1. Медиана для выбранной игры
+        median_playtime = db.query(
+            func.percentile_cont(0.5).within_group(UserGames.playtime_hours)
+        ).filter(
             UserGames.id_games == id_games,
-                UserGames.playtime_hours > 0
+            UserGames.playtime_hours > 0
         ).scalar()
-        # mode_playtime = db.query(func.mode().within_group(UserGames.playtime_hours)) \
-        #     .filter(UserGames.id_games == id_games) \
-        #     .scalar()
-        # mode_hours = db.query(
-        #     func.mode().within_group((UserGames.playtime_hours / 60.0).label('hours'))
-        # ).filter(UserGames.id_games == id_games).scalar()
+
         if median_playtime is None:
             return
-        ids_users = select(UserGames.id).where(
+
+        # 2. Подзапрос пользователей, у которых >= медианы
+        ids_users_subq = select(UserGames.id).where(
             UserGames.id_games == id_games,
             UserGames.playtime_hours >= median_playtime
-        )
+        ).subquery()
 
-        datas = db.query(UserGames).filter(
-            UserGames.id.in_(ids_users),
+        # 3. Подзапрос всех других игр этих пользователей + их playtime
+        datas_subq = select(
+            UserGames.id_games.label("id_games_likes"),
+            UserGames.id,
+            UserGames.playtime_hours
+        ).where(
+            UserGames.id.in_(ids_users_subq),
             UserGames.id_games != id_games,
             UserGames.playtime_hours > 0
-        ).all()
+        ).subquery()
 
+        # 4. Медианы сразу для всех id_games_likes одним запросом
         median_playtimes = db.query(
-            UserGames.id_games,
-            func.percentile_cont(0.5).within_group(UserGames.playtime_hours).label("median_playtime")
-        ).filter(
-            UserGames.id_games.in_([i.id_games for i in datas]),
-            UserGames.playtime_hours > 0
-        ).group_by(UserGames.id_games).all()
+            datas_subq.c.id_games_likes,
+            func.percentile_cont(0.5).within_group(datas_subq.c.playtime_hours).label("median_playtime")
+        ).group_by(datas_subq.c.id_games_likes).subquery()
 
-        # Создадим словарь для быстрого доступа
-        median_dict = {g: m for g, m in median_playtimes}
+        # 5. Соединяем и считаем points на уровне SQL
+        joined = select(
+            datas_subq.c.id_games_likes,
+            (datas_subq.c.playtime_hours / median_playtimes.c.median_playtime).label("points")
+        ).join(
+            median_playtimes,
+            median_playtimes.c.id_games_likes == datas_subq.c.id_games_likes
+        )
 
-        for data in datas:
-            median_playtime_data = median_dict.get(data.id_games)
-            points = data.playtime_hours / median_playtime_data
-            stmt = insert(VirtualUserGames).values({
-                "id_games": id_games,
-                "id_games_likes": data.id_games,
-                "points": points
-            }).on_conflict_do_update(
-                index_elements=["id_games", "id_games_likes"],
-                set_={
-                    "points": points
-                }
-            )
-            db.execute(stmt)
+        results = db.execute(joined).all()
+
+        if not results:
+            return
+
+        # 6. Bulk insert/update
+        stmt = insert(VirtualUserGames).values([
+            {"id_games": id_games, "id_games_likes": g, "points": p}
+            for g, p in results
+        ]).on_conflict_do_update(
+            index_elements=["id_games", "id_games_likes"],
+            set_={"points": func.excluded.points}
+        )
+
+        db.execute(stmt)
         db.commit()
 
 

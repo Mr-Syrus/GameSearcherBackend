@@ -30,13 +30,13 @@ def user(self: Task, steam_id: int):
             appid = g.get("appid")
             playtime_hours = g.get("playtime_forever", 0)
             rtime_last_played = g.get("rtime_last_played", 0)
-
-            db.merge(UserGames(
-                id=steam_id,
-                id_games=appid,
-                playtime_hours=playtime_hours,
-                rtime_last_played=rtime_last_played,
-            ))
+            if playtime_hours != 0:
+                db.merge(UserGames(
+                    id=steam_id,
+                    id_games=appid,
+                    playtime_hours=playtime_hours,
+                    rtime_last_played=rtime_last_played,
+                ))
             if not db.query(Games.id).filter_by(id=appid).first():
                 games_task.apply_async((appid,))
         db.commit()
