@@ -44,7 +44,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: celery -A celery_start worker --loglevel=info --concurrency=3 -Q steam_img
+    command: celery -A celery_start worker --loglevel=info --concurrency=5 -Q steam_img
     volumes:
       - .:/app
     depends_on: *common-depends
@@ -59,7 +59,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: celery -A celery_start worker --loglevel=info --concurrency=10 -Q default
+    command: celery -A celery_start worker --loglevel=info --concurrency=5 -Q default
     volumes:
       - .:/app
     depends_on: *common-depends
