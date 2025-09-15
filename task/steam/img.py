@@ -26,11 +26,8 @@ def file_exists(key):
 
 def convert(object_name, object_name_webp):
     # скачать из MinIO
-    data = io.BytesIO()
-    config.MINIO.get_object(
-        config.MINIO_BUCKET_NAME,
-        object_name,
-    ).readinto(data)
+    response = config.MINIO.get_object(config.MINIO_BUCKET_NAME, object_name)
+    data = io.BytesIO(response.read())
     data.seek(0)
 
     # конвертировать в webp
