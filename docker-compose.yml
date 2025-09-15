@@ -12,9 +12,9 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: fastapi
-    command: gunicorn -k uvicorn.workers.UvicornWorker --threads 10 app:app --bind 0.0.0.0:8080
+    command: gunicorn -k uvicorn.workers.UvicornWorker --threads 10 app:app --bind 0.0.0.0:8090
     ports:
-      - "8080:8080"
+      - "8090:8090"
     volumes:
       - .:/app
     restart: unless-stopped
