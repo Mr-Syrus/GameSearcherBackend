@@ -18,6 +18,7 @@ from db.steam.games_to_genres import GamesToGenres
 from db.steam.games_to_publisher import GamesToPublisher
 from db.steam.genres import Genres
 from db.steam.publisher import Publisher
+from db.steam_virtual_user.virtual_user_games import VirtualUserGames
 from db.user import User
 from db.session import Session
 from typing import List, Optional, Dict, Any
@@ -134,7 +135,23 @@ def all(
         query = query.filter(Games.reviews_score <= max_rating)
 
     if is_recommendations:
-        pass
+        user = dependency_get_user(session_key, db)
+
+        # подзапрос для получения id_games_likes с суммой points
+        subquery = (
+            db.query(
+                VirtualUserGames.id_games_likes.label("game_id"),
+                func.sum(VirtualUserGames.points).label("total_points")
+            )
+            .join(LikesGames, LikesGames.game_id == VirtualUserGames.id_games)
+            .filter(LikesGames.user_id == user.id)
+            .group_by(VirtualUserGames.id_games_likes)
+            .subquery()
+        )
+
+        # join с Games и сортировка по total_points
+        query = query.join(subquery, subquery.c.game_id == Games.id)
+        query = query.order_by(subquery.c.total_points.desc())
 
     return query.limit(limit).offset((page - 1) * limit).all()
 

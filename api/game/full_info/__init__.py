@@ -91,7 +91,7 @@ def full_info(
     game:Game = Game.model_validate(game_obj)
 
     return GameFull(
-        screenshots=[i[0] for i in db.query(Screenshots.bucket_path_full).filter(Screenshots.id_games==id).all()],
+        screenshots=[i[0] for i in db.query(Screenshots.path_full).filter(Screenshots.id_games==id).all()],
         genres=[i[0] for i in db.query(Genres.name).all()],
         **game.model_dump()
     )

@@ -12,9 +12,13 @@ from db.steam_virtual_user.virtual_user_games import VirtualUserGames
 def scheduler_user_games(self: Task):
     with config.DB.get_db_session() as db:
         db: Session
-        unique_ids = db.query(UserGames.id_games).filter(
-                UserGames.playtime_hours > 0
-        ).distinct().all()
+        unique_ids = (
+            db.query(UserGames.id_games)
+            .filter(UserGames.playtime_hours > 0)
+            .group_by(UserGames.id_games)
+            .order_by(func.sum(UserGames.playtime_hours).desc())
+            .all()
+        )
         unique_ids = [id_[0] for id_ in unique_ids]
 
     for i in unique_ids:
@@ -68,23 +72,27 @@ def user_games(self: Task, id_games: int):
         ).join(
             median_playtimes,
             median_playtimes.c.id_games_likes == datas_subq.c.id_games_likes
-        )
+        ).order_by(datas_subq.c.id_games_likes, datas_subq.c.id)
 
-        results = db.execute(joined).all()
+        chunk_size = 1000
 
-        if not results:
-            return
+        offset = 0
+        while True:
+            chunk = db.execute(joined.limit(chunk_size).offset(offset)).all()
+            if not chunk:
+                break
 
-        # 6. Bulk insert/update
-        stmt = insert(VirtualUserGames).values([
-            {"id_games": id_games, "id_games_likes": g, "points": p}
-            for g, p in results
-        ]).on_conflict_do_update(
-            index_elements=["id_games", "id_games_likes"],
-            set_={"points": func.excluded.points}
-        )
+            stmt = insert(VirtualUserGames).values([
+                {"id_games": id_games, "id_games_likes": g, "points": p}
+                for g, p in chunk if id_games != g
+            ]).on_conflict_do_update(
+                index_elements=["id_games", "id_games_likes"],
+                set_={"points": func.excluded.points}
+            )
+            db.execute(stmt)
 
-        db.execute(stmt)
+            offset += chunk_size
+
         db.commit()
 
 

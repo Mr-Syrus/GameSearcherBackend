@@ -54,6 +54,7 @@ def convert(object_name, object_name_webp):
 
 @config.CELERY_APP.task(bind=True, queue=QueueEnum.STEAM_IMG.value)
 def img(self: Task, url:str):
+    return
     try:
         # 1. имя объекта (берем из url)
         object_name = urlparse(url).path
