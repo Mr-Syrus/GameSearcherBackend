@@ -143,7 +143,8 @@ def games(self: Task, id: int):
                     path_thumbnail=screenshot.get("path_thumbnail"),
                     path_full=screenshot.get("path_full"),
 
-                    bucket_path_thumbnail=urlparse(screenshot.get("path_thumbnail")).path + ".webp" if app_data.get("path_thumbnail") else None,
+                    bucket_path_thumbnail=urlparse(screenshot.get("path_thumbnail")).path + ".webp" if app_data.get(
+                        "path_thumbnail") else None,
                     bucket_path_full=urlparse(screenshot.get("path_full")).path + ".webp",
                 ))
 
@@ -153,6 +154,29 @@ def games(self: Task, id: int):
                 release_date = datetime.strptime(app_data["release_date"]["date"], "%d %b, %Y").date(),
             except:
                 release_date = None
+
+            r = requests.get(
+                f"https://store.steampowered.com/appreviews/{id}",
+                params={
+                    "json": 1,
+                    "filter": "all",
+                    "language": "all",
+                    "day_range": 9223372036854775807,  # все отзывы
+                    "review_type": "all",
+                    "purchase_type": "all",
+                    "num_per_page": 0,  # без загрузки отзывов, только статистика
+                },
+                headers={"User-Agent": "Mozilla/5.0"}
+            )
+
+            data = r.json()
+            summary = data["query_summary"]
+
+            total = summary["total_reviews"]
+            positive = summary["total_positive"]
+            negative = summary["total_negative"]
+            score = (positive / total * 100) if total else 0
+
             data = Games(
                 id=id,
 
@@ -197,11 +221,17 @@ def games(self: Task, id: int):
                 bucket_background=urlparse(app_data.get("background")).path + ".webp",
                 bucket_background_raw=urlparse(app_data.get("background_raw")).path + ".webp",
 
-                ratings=app_data["ratings"]
+                ratings=app_data["ratings"],
+
+                total_reviews=total,
+                total_reviews_positive=positive,
+                total_reviews_negative=negative,
+                reviews_score=score,
             )
             db.merge(data)
         db.commit()
-    get_reviews(id)
+    # get_reviews(id)
+
 
 @config.CELERY_APP.task(bind=True, queue=QueueEnum.STEAM.value)
 def get_reviews(self: Task, id: int):
@@ -229,7 +259,7 @@ def get_reviews(self: Task, id: int):
 
     with config.DB.get_db_session() as db:
         db: Session
-        data = db.query(Games).filter(Games.id==id).first()
+        data = db.query(Games).filter(Games.id == id).first()
         data.total_reviews = total
         data.total_reviews_positive = positive
         data.total_reviews_negative = negative
