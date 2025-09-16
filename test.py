@@ -8,7 +8,7 @@ from db.session import Session
 from db.steam.user_games import UserGames
 from task.steam.games import games, scheduler_games
 from task.steam.user import user
-from task.steam_virtual_user.user_games import scheduler_user_games
+from task.steam_virtual_user.user_games import scheduler_user_games, user_games
 
 # Initialization
 incelization.init()
@@ -16,7 +16,9 @@ incelization.init()
 app = config.APP
 
 logging.basicConfig(level=logging.INFO)
-scheduler_user_games()
+# scheduler_user_games()
+user_games(292030)
+
 # user("76561199851203448")
 # scheduler_games()
 # scheduler_games.apply_async()

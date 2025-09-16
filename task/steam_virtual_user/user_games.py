@@ -72,9 +72,9 @@ def user_games(self: Task, id_games: int):
         ).join(
             median_playtimes,
             median_playtimes.c.id_games_likes == datas_subq.c.id_games_likes
-        ).order_by(datas_subq.c.id_games_likes, datas_subq.c.id)
+        ).distinct(datas_subq.c.id_games_likes).order_by(datas_subq.c.id_games_likes, datas_subq.c.id)
 
-        chunk_size = 1000
+        chunk_size = 10000
 
         offset = 0
         while True:
@@ -85,15 +85,17 @@ def user_games(self: Task, id_games: int):
             stmt = insert(VirtualUserGames).values([
                 {"id_games": id_games, "id_games_likes": g, "points": p}
                 for g, p in chunk if id_games != g
-            ]).on_conflict_do_update(
+            ])
+
+            stmt = stmt.on_conflict_do_update(
                 index_elements=["id_games", "id_games_likes"],
-                set_={"points": func.excluded.points}
+                set_={VirtualUserGames.points: stmt.excluded.points}
             )
             db.execute(stmt)
 
             offset += chunk_size
 
-        db.commit()
+            db.commit()
 
 
 def init():
