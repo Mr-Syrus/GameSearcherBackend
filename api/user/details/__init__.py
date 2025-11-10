@@ -58,7 +58,8 @@ def get_user_details(
         date[game.release_date.year] = game.name
         min_year = min(min_year, game.release_date.year)
         max_year = max(max_year, game.release_date.year)
-        developers.update(game.developers)
+        if game.developers:
+            developers.update(game.developers)
 
     res["date"] = {}
     res["date"]["min_year"] = min_year
