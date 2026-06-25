@@ -1,63 +1,63 @@
 # Game Searcher Backend
 
-Бэкенд-сервис для поиска, анализа и рекомендации видеоигр на основе данных из Steam.
+Backend service for searching, analyzing, and recommending video games based on Steam data.
 
-## О проекте
+## About the Project
 
-Проект автоматизирует сбор информации об играх и игроках из открытых источников, предоставляет удобное REST API для поиска, фильтрации, лайков и персонализированных рекомендаций.
+The project automates the collection of information about games and players from open sources, providing a convenient REST API for searching, filtering, likes, and personalized recommendations.
 
-**Основные возможности:**
-- Парсинг игр из Steam (цены, описания, жанры, достижения, скриншоты)
-- REST API с документацией Swagger
-- Авторизация и управление лайками
-- Поиск и фильтрация игр
-- Рекомендательная система на основе предпочтений
-- Асинхронные задачи (Celery) для обновления данных
-- Кэширование (Redis)
-- Облачное хранение изображений (S3)
+**Key Features:**
+- Steam game parsing (prices, descriptions, genres, achievements, screenshots)
+- REST API with Swagger documentation
+- Authorization and like management
+- Game search and filtering
+- Recommendation system based on preferences
+- Asynchronous tasks (Celery) for data updates
+- Caching (Redis)
+- Cloud image storage (S3)
 
-## Стек технологий
+## Tech Stack
 
-| Категория | Технологии |
-|-----------|-------------|
-| Язык | Python 3.11+ |
-| Фреймворк | FastAPI |
-| Базы данных | PostgreSQL |
-| Миграции | Alembic |
-| Кэш и брокер | Redis |
-| Фоновые задачи | Celery |
-| Парсинг | Playwright, BeautifulSoup4, `steam` API |
-| Хранилище | MinIO / AWS S3 (boto3) |
-| Контейнеризация | Docker |
+| Category | Technologies |
+|----------|--------------|
+| Language | Python 3.11+ |
+| Framework | FastAPI |
+| Databases | PostgreSQL |
+| Migrations | Alembic |
+| Cache & Broker | Redis |
+| Background Tasks | Celery |
+| Parsing | Playwright, BeautifulSoup4, `steam` API |
+| Storage | MinIO / AWS S3 (boto3) |
+| Containerization | Docker |
 
-## Быстрый старт
+## Quick Start
 
-### Локальный запуск
+### Local Setup
 
 ```bash
-# 1. Клонирование
+# 1. Clone the repository
 git clone https://github.com/Mr-Syrus/GameSearcherBackend.git
 cd GameSearcherBackend
 
-# 2. Виртуальное окружение
+# 2. Virtual environment
 python -m venv venv
 source venv/bin/activate   # Linux/Mac
 # venv\Scripts\activate    Windows
 
-# 3. Установка зависимостей
+# 3. Install dependencies
 pip install -r requirements.txt
 
-# 4. Настройка .env (скопируйте .env.example и заполните)
+# 4. Configure .env (copy .env.example and fill it in)
 cp .env.example .env
 
-# 5. Миграции БД
+# 5. Database migrations
 alembic upgrade head
 
-# 6. Запуск Redis (Docker)
+# 6. Start Redis (Docker)
 docker run -d -p 6379:6379 redis
 
-# 7. Запуск Celery (отдельный терминал)
+# 7. Start Celery (separate terminal)
 celery -A app.tasks worker --loglevel=info
 
-# 8. Запуск API
+# 8. Start the API
 uvicorn app.main:app --reload
